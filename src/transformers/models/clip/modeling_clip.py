@@ -672,6 +672,7 @@ class CLIPTextTransformer(nn.Module):
     def forward(
         self,
         input_ids: Optional[torch.Tensor] = None,
+        inputs_embeds: Optional[torch.Tensor] = None,
         attention_mask: Optional[torch.Tensor] = None,
         position_ids: Optional[torch.Tensor] = None,
         output_attentions: Optional[bool] = None,
@@ -688,13 +689,21 @@ class CLIPTextTransformer(nn.Module):
         )
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
+        # if input_ids is None:
+            # raise ValueError("You have to specify input_ids")
+
+        if inputs_embeds is None:
+            input_shape = input_ids.size()
+            input_ids = input_ids.view(-1, input_shape[-1])
+        else:
+            input_shape = torch.Size([1, 77])
+
+        hidden_states = self.embeddings(input_ids=input_ids, position_ids=position_ids, inputs_embeds=inputs_embeds)
+
         if input_ids is None:
-            raise ValueError("You have to specify input_ids")
-
-        input_shape = input_ids.size()
-        input_ids = input_ids.view(-1, input_shape[-1])
-
-        hidden_states = self.embeddings(input_ids=input_ids, position_ids=position_ids)
+            # FIXME(JA): using the entire input_embeds for tattention / pooling might
+            # not be the best way to go...
+            input_ids = torch.arange(0, 76, dtype=torch.int, device=hidden_states.device)
 
         # CLIP's text model uses causal mask, prepare it here.
         # https://github.com/openai/CLIP/blob/cfcffb90e69f37bf2ff1e988237a0fbe41f33c04/clip/model.py#L324
@@ -776,6 +785,7 @@ class CLIPTextModel(CLIPPreTrainedModel):
     def forward(
         self,
         input_ids: Optional[torch.Tensor] = None,
+        inputs_embeds: Optional[torch.Tensor] = None,
         attention_mask: Optional[torch.Tensor] = None,
         position_ids: Optional[torch.Tensor] = None,
         output_attentions: Optional[bool] = None,
@@ -803,6 +813,7 @@ class CLIPTextModel(CLIPPreTrainedModel):
 
         return self.text_model(
             input_ids=input_ids,
+            inputs_embeds=inputs_embeds,
             attention_mask=attention_mask,
             position_ids=position_ids,
             output_attentions=output_attentions,
@@ -1187,6 +1198,7 @@ class CLIPTextModelWithProjection(CLIPPreTrainedModel):
     def forward(
         self,
         input_ids: Optional[torch.Tensor] = None,
+        inputs_embeds: Optional[torch.Tensor] = None,
         attention_mask: Optional[torch.Tensor] = None,
         position_ids: Optional[torch.Tensor] = None,
         output_attentions: Optional[bool] = None,
@@ -1213,6 +1225,7 @@ class CLIPTextModelWithProjection(CLIPPreTrainedModel):
 
         text_outputs = self.text_model(
             input_ids=input_ids,
+            inputs_embeds=inputs_embeds,
             attention_mask=attention_mask,
             position_ids=position_ids,
             output_attentions=output_attentions,
