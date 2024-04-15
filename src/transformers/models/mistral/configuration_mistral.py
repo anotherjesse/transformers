@@ -121,6 +121,16 @@ class MistralConfig(PretrainedConfig):
         rope_theta=10000.0,
         sliding_window=4096,
         attention_dropout=0.0,
+        max_thoughts=16,
+        merged_talk_heads=True,
+        merged_lm_and_talk_heads=False,
+        merged_lm_and_think_heads=True,
+        use_concat_talk_head=True,
+        use_shallow_think=True,
+        use_shallow_talk=False,
+        use_complex_think_head=False,
+        use_complex_talk_head=True,
+        use_weighted_talk_head=True,
         **kwargs,
     ):
         self.vocab_size = vocab_size
@@ -142,6 +152,16 @@ class MistralConfig(PretrainedConfig):
         self.use_cache = use_cache
         self.rope_theta = rope_theta
         self.attention_dropout = attention_dropout
+        self.max_thoughts = max_thoughts
+        self.merged_talk_heads = merged_talk_heads
+        self.merged_lm_and_talk_heads = merged_lm_and_talk_heads
+        self.merged_lm_and_think_heads = merged_lm_and_think_heads
+        self.use_concat_talk_head = use_concat_talk_head
+        self.use_shallow_think = use_shallow_think
+        self.use_shallow_talk = use_shallow_talk
+        self.use_complex_think_head = use_complex_think_head
+        self.use_complex_talk_head = use_complex_talk_head
+        self.use_weighted_talk_head = use_weighted_talk_head
 
         super().__init__(
             pad_token_id=pad_token_id,
